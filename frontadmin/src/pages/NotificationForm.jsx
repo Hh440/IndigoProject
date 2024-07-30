@@ -31,14 +31,7 @@ export const NotificationForm = () => {
   }, []);
 
 
-  const resetForm = () => {
-    setNotificationId(generateUniqueNotificationId());
-    setFlightNumber("");
-    setMessage("");
-    setMethod("");
-    setRecipient("");
-  };
-
+  
   
  
 

@@ -7,6 +7,7 @@ Develop a system to provide real-time flight status updates and notifications to
 1. **Real-time Updates**: Display current flight status, including delays, cancellations, and gate changes.
 2. **Push Notifications**: Send notifications for flight status changes via SMS, email, or app notifications.
 3. **Integration with Airport Systems**: Pull data from airport databases for accurate information (mock data provided).
+4. **Admin Panel**: Interface for administrators to manage flights and notifications, assuming the user is logged in.
 
 ## Technologies Used
 ### Frontend
@@ -91,6 +92,7 @@ Develop a system to provide real-time flight status updates and notifications to
 - Access the frontend application at `http://localhost:3000`.
 - View real-time flight status updates.
 - Receive notifications for flight status changes via app notifications, email, and SMS.
+- Use the admin panel to add and update flight details and send notifications (assumes user is logged in).
 
 ## Mock Data
 - Use the provided mock data for initial testing and development.
@@ -101,3 +103,21 @@ This project showcases my ability to integrate various technologies to build a c
 
 ## Personal Statement
 Participating in this "Hack to Hire" challenge has been an exciting opportunity to demonstrate my skills in full-stack development, real-time data processing, and notification system integration. I am passionate about building efficient and user-friendly applications and am confident that my technical expertise and problem-solving abilities will be a valuable asset to any team.
+
+## Demo Video
+Watch a demonstration of the Flight Status and Notifications System:
+
+[![Watch the demo video](https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+
+
+---
+
+### Admin Panel Functionality
+The admin panel allows administrators to:
+- Add new flights
+- Update existing flight details
+- Send notifications to users
+
+---
+
+**Note**: Ensure to configure your Firebase, Nodemailer, and Twilio credentials in the backend `.env` file for the notification services to work correctly.

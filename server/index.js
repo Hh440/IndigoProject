@@ -9,6 +9,7 @@ const twilio= require('twilio')
 const admin = require('firebase-admin');
 const serviceAccount = require('./serviceAccountKey.json');
 const { join } = require('@prisma/client/runtime/library')
+const axios = require('axios')
 
 dotenv.config()
 
@@ -40,12 +41,16 @@ app.get('/test-connection', async (req, res) => {
     }
   });
 
+  // all Flight end point
 app.get('/allFlight', async (req,res) => {
    
     const allFlight = await prisma.flight.findMany();
   
     return res.json(allFlight);
   });
+
+
+  // Adding Flight data in database end point
   
   app.post('/add-Data', async (req,res) => {
     
@@ -81,6 +86,8 @@ app.get('/allFlight', async (req,res) => {
   });
 
 
+
+// Displayingt he fligth deatil end-point
   app.get('/flight/:id', async (req,res) => {
     
     const id = req.params.id
@@ -114,7 +121,7 @@ app.get('/allFlight', async (req,res) => {
   });
   
 
-
+// enter flightId check end-point
 
 app.post('/flight-check', async (req,res) => {
 
@@ -140,9 +147,46 @@ app.post('/flight-check', async (req,res) => {
       return res.json({ error: 'Error fetching flight data', details: e.message });
     }
   })
+
+// flight update end-point
+
+  app.post('/flightUpdate', async (req, res) => {
+    const { flightId, status, departureGate, arrivalGate, scheduledDeparture, scheduledArrival, actualDeparture, actualArrival } = req.body;
+  
+    try {
+      // Update flight details in the database
+      const updatedFlight = await prisma.flight.update({
+        where: { flightId },
+        data: {
+          airline: "indigo",
+          flightId:flightId,
+          status,
+          departureGate,
+          arrivalGate,
+          scheduledDeparture: new Date("2024-07-26T14:00:00Z"),
+          scheduledArrival: new Date("2024-07-26T18:00:00Z"),
+          actualDeparture : null,
+          actualArrival : null,
+        },
+      });
+  
+      // Trigger the /notification endpoint
+      const notificationResponse = await axios.post('http://localhost:3000/notification', {
+        flightId,
+        message: `Flight ${flightId} has been updated. New status: ${status}. Departure gate: ${departureGate}.`,
+        method: "Email", // Or "SMS", depending on your requirement
+        recipient: "example@example.com", // The recipient's email or phone number
+      });
+  
+      res.json({ updatedFlight, notificationResponse: notificationResponse.data });
+    } catch (e) {
+      console.error("Error updating flight details:", e);
+      res.status(500).json({ error: "Error updating flight details", details: e.message });
+    }
+  });
   
 
-
+// notification end-point
   app.post('/notification',async(req,res)=>{
 
     const body = await req.body
@@ -163,16 +207,24 @@ app.post('/flight-check', async (req,res) => {
 
       console.log("Flight found:", flight);
 
+      const methods = ["SMS", "Email", "InApp"];
+
+      function getRandomMethod(arr) {
+        const randomIndex = Math.floor(Math.random() * arr.length);
+        return arr[randomIndex];
+      }
+  
+
       
 
       const notification = await prisma.notification.create({
         data:{
-          notificationId: body.notificationId,
+          notificationId: body.notificationId || cuid(),
           flightId: flight.id,
-          message : body.message,
+          message : body.message || message,
          timestamp: "2024-07-26T15:30:00Z",
-         method: body.method,
-        recipient: body.recipient
+         method: body.method ||getRandomMethod(methods),
+        recipient: body.recipient||"Hardcorded"
         },
       }) 
   
@@ -251,6 +303,10 @@ app.post('/flight-check', async (req,res) => {
   }
 
   });
+
+
+
+
   
   
 

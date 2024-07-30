@@ -3,6 +3,8 @@ import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 
+
+
 const firebaseConfig = {
     apiKey: "AIzaSyCLS2CR3EURWRYhbPl8_THKDOpHODjgrnw",
     authDomain: "indigo-ff258.firebaseapp.com",
