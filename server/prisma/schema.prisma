@@ -44,5 +44,5 @@ model Notification {
 
   flight         Flight    @relation(fields: [flightId], references: [id])
 
-  @@index([flightId])
+  
 }

@@ -6,6 +6,9 @@ const cors = require('cors')
 const nodemailer = require('nodemailer')
 const dotenv = require('dotenv')
 const twilio= require('twilio')
+const admin = require('firebase-admin');
+const serviceAccount = require('./serviceAccountKey.json');
+const { join } = require('@prisma/client/runtime/library')
 
 dotenv.config()
 
@@ -15,6 +18,10 @@ app.use(cors())
 const prisma = new PrismaClient()
 
 app.use(express.json())
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 
 const accountSid = process.env.TWILIO_AUTH_SID;
@@ -42,17 +49,19 @@ app.get('/allFlight', async (req,res) => {
   
   app.post('/add-Data', async (req,res) => {
     
+
+    const body= req.body;
     
     
   
     try {
       const flight = await prisma.flight.create({
         data: {
-          flightId: '6E 2094',
-          airline: 'Indigo',
-          status: 'On Time',
-          departureGate: 'A12',
-          arrivalGate: 'B7',
+          flightId: body.flightId,
+          airline: body.airline,
+          status: body.status,
+          departureGate: body.departureGate,
+          arrivalGate: body.arrivalGate,
           scheduledDeparture: new Date('2024-07-26T14:00:00Z'),
           scheduledArrival: new Date('2024-07-26T18:00:00Z'),
           actualDeparture: null,
@@ -134,70 +143,107 @@ app.post('/flight-check', async (req,res) => {
   
 
 
-  app.post('/notification',async(resq,res)=>{
+  app.post('/notification',async(req,res)=>{
+
+    const body = await req.body
 
 
     try{
 
+      console.log("Incoming data",body)
+
       const flight = await prisma.flight.findUnique({
-        where: { flightId: "6E 2094" }
+        where: { flightId: body.flightId  }
       });
   
       if (!flight) {
+        console.log("Flight not Found",body.flightId)
         throw new Error("Flight not found");
       }
 
+      console.log("Flight found:", flight);
+
+      
+
       const notification = await prisma.notification.create({
         data:{
-          notificationId: "16",
+          notificationId: body.notificationId,
           flightId: flight.id,
-          message : "Your flight 6E 2094 is delayed. New departure time: 2024-07-26T17:00:00Z. Departure gate: C3.",
+          message : body.message,
          timestamp: "2024-07-26T15:30:00Z",
-         method: "SMS",
-        recipient: "+1234567890"
+         method: body.method,
+        recipient: body.recipient
         },
       }) 
-
+  
+      console.log("Notification",notification)
 
         
-        // async..await is not allowed in global scope, must use a wrapper
-        if(notification.method==="Email"){
+        
+          if(notification.method==="Email"){
+          // Notification through mail
 
-          const transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            auth: {
-               user: 'karli.waters87@ethereal.email',
-               pass: '9MuBTvB77AJ4wuV41k'
-            },
-          });
+            const transporter = nodemailer.createTransport({
+              host: "smtp.ethereal.email",
+              port: 587,
+              auth: {
+                 user: 'jesus.weimann45@ethereal.email',
+                 pass: '49frsneUm7r7h1Qgs3'
+              },
+            });
 
-        async function main() {
+          async function main() {
           // send mail with defined transport object
-          const info = await transporter.sendMail({
-            from: '"Indigo"  <noreply@indigo.com>', 
-            to: notification.recipient, 
-            subject: "Flight status", 
-            text: notification.timestamp,
+            const info = await transporter.sendMail({
+              from: '"Indigo"  <noreply@indigo.com>', 
+              to: notification.recipient, 
+              subject: "Flight status", 
+              text: notification.timestamp,
 
-          });
-          console.log("Message sent: %s", info.messageId);
-          res.json(info)
+            });
+            console.log("Message sent: %s", info.messageId);
+            res.json(info)
+       }
+        main().catch(console.error)
+    }else if(notification.method==="SMS"){
+    // Notification through SMS
+
+
+      async function createMessage() {
+        const message = await client.messages.create({
+          body: notification.message,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: notification.recipient,
+        });
+        console.log(message.body);
+        res.json(message)
       }
-      main().catch(console.error)
-  }else if(notification.method==="SMS"){
-    async function createMessage() {
-      const message = await client.messages.create({
-        body: notification.message,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: notification.recipient,
-      });
-      console.log(message.body);
-      res.json(message)
-    }
     
-    createMessage();
-  }
+      createMessage();
+    }else{
+    // Notification through Application
+
+      const fcmToken=process.env.FCM_TOKEN
+      const message = {
+        notification: {
+          title: 'Flight Status',
+          body: notification.message
+        },
+        token: fcmToken
+      };
+  
+      try {
+        const response = await admin.messaging().send(message);
+        res.json(message)
+        res.status(200).send('Successfully sent message: ' + response);
+      } catch (error) {
+        res.status(500).send('Error sending message: ' + error);
+      }
+
+    }
+
+
+    
 
 
   }catch(e){

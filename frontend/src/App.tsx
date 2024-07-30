@@ -3,8 +3,7 @@ import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Flight from './pages/Flight'
 import Details from './pages/Details'
-
-import { useEffect } from 'react';
+import './firebase'
 
 function App() {
  
