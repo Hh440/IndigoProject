@@ -107,8 +107,7 @@ Participating in this "Hack to Hire" challenge has been an exciting opportunity 
 ## Demo Video
 Watch a demonstration of the Flight Status and Notifications System:
 
-
-[!https://github.com/user-attachments/assets/3f55759d-04a2-4cd5-b846-d408b1ba0f78]
+https://github.com/user-attachments/assets/3f55759d-04a2-4cd5-b846-d408b1ba0f78
 
 ---
 
